@@ -1,0 +1,179 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>HBase 安装及测试 | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="版本 1.2.6
+
+安装解压 hbase-1.2.6-bin.tar.gz
+12cd /opttar -zxvf hbase-1.2.6-bin.tar.gz -C /root/">
+  
+
+  
+  
+  <meta name="keywords" content="hbase">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="HBase 安装及测试"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>HBase 安装及测试</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/HBase-安装及测试/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T11:54:41.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <ul>
+<li>版本 1.2.6</li>
+</ul>
+<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><p>解压 <code>hbase-1.2.6-bin.tar.gz</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /opt</span><br><span class="line">tar -zxvf hbase-1.2.6-bin.tar.gz -C /root/</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>配置系统环境变量，设置完成后使用 <code>source</code> 命令使之生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bim /etc/profile</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export HBASE_HOME=/root/hbase-1.2.6</span><br></pre></td></tr></table></figure>
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h4><p>这部分共需要修改 3 个配置文件</p>
+<h5 id="1-hbase-env-sh"><a href="#1-hbase-env-sh" class="headerlink" title="1 hbase-env.sh"></a>1 hbase-env.sh</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/hbase-1.2.6/conf</span><br><span class="line">vim hbase-env.sh</span><br></pre></td></tr></table></figure>
+<p>配置 <code>JAVA_HOME</code></p>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fmbl73rcbaj30cb01hq2z.jpg" alt=""></p>
+<p>配置 <code>HBASE_MANAGES_ZK</code> 为 <code>false</code></p>
+<blockquote>
+<p>如果是使用 hbase 自带的 zookeeper 就是 true，否则使用自己搭建的独立的 zookeeper 那这里就是 false，因此这里也说明启动 hbase 之前我们需要把独立安装的 zookeeper 先启动起来</p>
+</blockquote>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fmblf3hrozj30h501ejrf.jpg" alt=""></p>
+<h5 id="2-hbase-site-xml"><a href="#2-hbase-site-xml" class="headerlink" title="2 hbase-site.xml"></a>2 hbase-site.xml</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim hbase-site.xml</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.rootdir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">   	<span class="comment">&lt;!-- 和hadoop的core-site.xml 中保持一致，利用hdfs作为存储--&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://data:9000/hbase<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.cluster.distributed<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.zookeeper.quorum<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>data:2181<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1fjh2xy0otlj30bp04gq3g.jpg" alt=""></p>
+<h5 id="3-regionservers"><a href="#3-regionservers" class="headerlink" title="3 regionservers"></a>3 regionservers</h5><p>将里面的 localhost 改为 data，也就是本机的 hostname</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim regionservers</span><br></pre></td></tr></table></figure>
+<h4 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h4><p>启动之前确保 zookeeper 正常运行，使用 <code>jps</code> 命令查看进程列表</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fmblqpjg0tj305705a0t5.jpg" alt=""></p>
+<p>运行 hbase</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start-hbase.sh</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fmblsfy2jjj30oi03qabt.jpg" alt=""></p>
+<p>再次使用 <code>jps</code> 命令查看，发现出现了 <code>HMaster</code> 和 <code>HRegionServer</code> 进程</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1fmblthwj5uj30570630ta.jpg" alt=""></p>
+<p>hdfs 的根目录中出现了 hbase 目录</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fmbluu79wmj30gx04ydhf.jpg" alt=""></p>
+<p>也可以通过 hbase 的 web 界面查看相关信息，默认是 16010 端口</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fmblyd9a53j30vu0lfq5p.jpg" alt=""></p>
+<p>到这里 hbase 就搭建成功了</p>
+<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hbase shell</span><br></pre></td></tr></table></figure>
+<p>通过 <code>version</code> 和 <code>status</code> 命令查看 hbase 的基本信息</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fmbm2jasecj30rc072415.jpg" alt=""></p>
+<p>可以通过以下命令创建、查看一张表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">create <span class="string">'member'</span>, <span class="string">'info'</span>, <span class="string">'address'</span></span><br><span class="line">list</span><br><span class="line">describe <span class="string">'member'</span></span><br></pre></td></tr></table></figure>
+<p>同时也可以在 web 端查看新建的 member 表</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1fmbm5v8p7jj31kw103wte.jpg" alt=""></p>
+<blockquote>
+<p>注意</p>
+<p>由于 hbase 依赖了 hdfs（也有可能依赖了独立安装的 zookeeper），所以启停顺序一定是</p>
+<p>启动 hdfs，启动 hbase，关闭 hbase，关闭 hdfs</p>
+</blockquote>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/hbase/">hbase</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Flume 搭建教程 | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="基于上一节搭建的 Spark 环境，这一节我们继续搭建 Flume 相关的环境。在开始之前我们先介绍一个什么是 Flume？引用官网对于 Flume 的阐述：
+
+Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible architecture based on streaming data flows. It is robust and fault tolerant with tunable reliability mechanisms and many failover and recovery mechanisms. It uses a simple extensible data model that allows for online analytic application.">
+  
+
+  
+  
+  <meta name="keywords" content="flume">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="Flume 搭建教程"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>Flume 搭建教程</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/Flume-搭建教程以及入门级案例/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T11:53:32.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <p>基于上一节搭建的 Spark 环境，这一节我们继续搭建 Flume 相关的环境。在开始之前我们先介绍一个什么是 Flume？引用官网对于 Flume 的阐述：</p>
+<blockquote>
+<p>Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible architecture based on streaming data flows. It is robust and fault tolerant with tunable reliability mechanisms and many failover and recovery mechanisms. It uses a simple extensible data model that allows for online analytic application.</p>
+</blockquote>
+<a id="more"></a>
+<p>简而言之：Flume 是一个 <code>分布式的</code>、<code>可靠的</code> 和 <code>可用的</code> 服务，用于 <code>收集</code>、<code>聚合</code> 和 <code>移动</code> 大规模的数据</p>
+<p>本节搭建的 Flume 版本为 <code>1.7.0</code></p>
+<h4 id="搭建过程"><a href="#搭建过程" class="headerlink" title="搭建过程"></a>搭建过程</h4><h5 id="JDK"><a href="#JDK" class="headerlink" title="JDK"></a>JDK</h5><p>Java 的安装可以参考《可能是坑最少的Spark环境搭建教程2》一节，安装好以后记得检查一下 Java 的版本，确保为 1.8</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -version</span><br></pre></td></tr></table></figure>
+<p>出现以下表示 JDK 的配置没问题</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1fm9c97vqi2j30eh02iaai.jpg" alt=""></p>
+<h5 id="解压、安装"><a href="#解压、安装" class="headerlink" title="解压、安装"></a>解压、安装</h5><p>在系统的 /opt 目录下找到之前存放好的安装文件：<code>apache-flume-1.7.0-bin.tar.gz</code></p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fm9cc7x0guj30hk05t0v5.jpg" alt=""></p>
+<p>执行以下命令，将 flume 安装包解压到 /root 下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf apache-flume-1.7.0-bin.tar.gz -C /root/</span><br></pre></td></tr></table></figure>
+<p>配置环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export FLUME_HOME=/root/apache-flume-1.7.0-bin</span><br></pre></td></tr></table></figure>
+<p>修改完成后使之生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+<h5 id="配置-Flume"><a href="#配置-Flume" class="headerlink" title="配置 Flume"></a>配置 Flume</h5><p>首先进入 flume 的配置文件目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/apache-flume-1.7.0-bin/conf</span><br><span class="line">cp flume-env.sh.template flume-env.sh</span><br></pre></td></tr></table></figure>
+<p>修改 <code>flume-env.sh</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim flume-env.sh</span><br></pre></td></tr></table></figure>
+<p>配置 <code>JAVA_HOME</code> 路径</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fm9cqyy92yj309700yt8m.jpg" alt=""></p>
+<p>至此就基本配置好了，是不是很简单？这里我们可以通过查看 Flume 的版本来对其进行简单的检查</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flume-ng version</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tNc79ly1fm9ctiuyh7j30gf02pgm5.jpg" alt=""></p>
+<p>这里可以看到输出了 1.7.0，表示 flume 基本配置没问题</p>
+<p>flume 的安装配置较为基础，接下来通过几个小案例来简单说明 flume 的使用。在这之前我们要了解 flume 的组成，flume 以 agent 为基本单位，每个 agent 由三个组件构成，它们是</p>
+<ul>
+<li>source</li>
+<li>channel</li>
+<li>sink</li>
+</ul>
+<p>从名字也可以看出，source 指定了数据来源，channel 是数据的通道，最后 sink 将收集的数据送到目的地址。这是一个 agent 的示意图。在下图中，数据源为 Web Server 产生的日志，首先通过 source 组件对日志进行收集，载通过 channel 组件送到 sink 中，可以看出这是一个 HDFS 类型的 sink，最终会把收集好的日志数据持续地保存到 HDFS 中，便于进行下一步的分析处理。</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fm9kdwvgvbj30co05b74k.jpg" alt=""></p>
+<h4 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h4><p>这一节通过一个比较简单的案例来讲解如何开发 flume，实际上 flume 的开发就是写配置文件。从以上知道 flume 要配置 agent，根据组件构成我们要做的工作包含：</p>
+<ul>
+<li>定义一个 agent</li>
+<li>具体声明 agent 中的三大组件：source、channel 和 sink</li>
+<li>最后将三个组件串起来</li>
+</ul>
+<p>这个案例的需求很简单：</p>
+<ul>
+<li>从指定网络端口采集数据输出到控制台</li>
+</ul>
+<p>第一步我们定义一个 agent，并且定义好此 agent 中包含的三个组件</p>
+<p>下面这个文件以 a1 开头，a1 就是这个 agent 的名称，这三行分别指定了组件的名称为 r1、k1 和 c1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1</span><br><span class="line">a1.channels = c1</span><br></pre></td></tr></table></figure>
+<p>定义 source，这是一个 netcat 类型的 source，它监听本地的 44444 端口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a1.sources.r1.type = netcat</span><br><span class="line">a1.sources.r1.bind = localhost</span><br><span class="line">a1.sources.r1.port = 44444</span><br></pre></td></tr></table></figure>
+<p>定义 sink，这里比较简单，将收集的数据直接打印在控制台上就好了，这是一个 logger 类型的 sink</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a1.sinks.k1.type = logger</span><br></pre></td></tr></table></figure>
+<p>最后定义 channel，这里使用内存类型的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a1.channels.c1.type = memory</span><br></pre></td></tr></table></figure>
+<p>最后一步，将三个组件的关系串起来</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>观察最后一步的书写，一个 source 是可以将收集的数据传送给多个 channel 的，所以 r1 后面的 channel 是复数，而一个 sink 只能从一个 channel 中取数据，所以 channel 是单数</p>
+</blockquote>
+<p>将以上配置内容存放在一个文件中 <code>example.conf</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1</span><br><span class="line">a1.channels = c1</span><br><span class="line"></span><br><span class="line">a1.sources.r1.type = netcat</span><br><span class="line">a1.sources.r1.bind = localhost</span><br><span class="line">a1.sources.r1.port = 44444</span><br><span class="line"></span><br><span class="line">a1.sinks.k1.type = logger</span><br><span class="line"></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line"></span><br><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+<p>执行脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent \</span><br><span class="line">--name a1 \</span><br><span class="line">--conf <span class="variable">$FLUME_HOME</span>/conf \</span><br><span class="line">--conf-file example.conf \</span><br><span class="line">-Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+<p>这里简单解释下：name 指定的是 agent 的名字，conf 需要指定配置文件，默认就是 flume 目录下的 conf 文件夹，conf-file 需要指定我们自己编写的 conf 文件，最后指定本次运行的 flume 程序的 log 级别为 INFO，形式为控制台</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fm9e3jlbqij308p02aq35.jpg" alt=""></p>
+<p>看到标红处，表示已经成功监听了本地端口</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fm9e4u6263j30q303gabz.jpg" alt=""></p>
+<p>再打开一个终端，使用 telnet 命令向本地 44444 端口发送数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">telnet localhost 44444</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fm9e2s8mr6j30c103w74r.jpg" alt=""></p>
+<p>每发送一次信息就看一下 flume 的日志输出，正常情况下 flume 就会捕获到用户的输入，由于 sink 指定的是控制台，所以我们会在控制台上看到在 telnet 处的输入</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fm9e5ax17mj30qc020dgy.jpg" alt=""></p>
+<p>到这里 flume 的一个入门级的案例就完成了</p>
+<h4 id="拓展"><a href="#拓展" class="headerlink" title="拓展"></a>拓展</h4><p>实际上 flume agent 的组织形式多种多样，这里简单列举几个</p>
+<ul>
+<li>agent 连接到另一个 agent 上</li>
+</ul>
+<p><img src="https://ws3.sinaimg.cn/large/006tNc79ly1fm9kwsl5pij30h403ewew.jpg" alt=""></p>
+<ul>
+<li>一个 agent 收集多个 agent 的数据来源，这种情况下对于实际使用场景是很有帮助的</li>
+</ul>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fm9kwzv3ojj30h80bnt9z.jpg" alt=""></p>
+<p>flume 灵活的组织结构和对多种数据来源、数据去向（source 和 sink 的类型）的支持，使得它的用途较为广泛。在生产环境中往往将 sink 输出到 kafka 中缓冲，进一步用 Spark Streaming 进行实时的流计算</p>
+<blockquote>
+<p>请读者思考，如何利用 flume 实现对一个文件的增量监控？</p>
+</blockquote>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/flume/">flume</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

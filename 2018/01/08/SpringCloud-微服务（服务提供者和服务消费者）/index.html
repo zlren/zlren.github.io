@@ -1,0 +1,210 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>SpringCloud 微服务（服务提供者和服务消费者） | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="本系列基于《SpringCloud 与 Docker 微服务架构实战》（作者：周立）一书
+
+传统的项目都是 单体 结构的，简单的说就是一个 war 包，部署在 servlet 容器中。这是很多项目初期的架构选择，这种方案的优点是开发和运维都比较容易，简单的业务场景下维护的成本较低。随着业务的发展，这种架构暴露出严重的问题">
+  
+
+  
+  
+  <meta name="keywords" content="spring-cloud">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="SpringCloud 微服务（服务提供者和服务消费者）"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>SpringCloud 微服务（服务提供者和服务消费者）</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/SpringCloud-微服务（服务提供者和服务消费者）/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T12:01:21.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <blockquote>
+<p>本系列基于《SpringCloud 与 Docker 微服务架构实战》（作者：周立）一书</p>
+</blockquote>
+<p>传统的项目都是 <code>单体</code> 结构的，简单的说就是一个 war 包，部署在 servlet 容器中。这是很多项目初期的架构选择，这种方案的优点是开发和运维都比较容易，简单的业务场景下维护的成本较低。随着业务的发展，这种架构暴露出严重的问题</p>
+<a id="more"></a>
+<ul>
+<li>业务的发展带来代码量的增加，随之而来的是复杂性的急剧上升，这样维护的成本大大提高，添加一个功能或者修复一个 bug 都胆战心惊</li>
+<li>可靠性差：某个应用的 bug 有可能导致整个服务变得不可用</li>
+<li>阻碍技术发展：单体结构中一般采用统一的技术平台或者技术方案解决所有的问题，表现为相同的开发语言和框架，这时想引入新的技术框架变得异常困难</li>
+</ul>
+<p><code>微服务</code> 的出现就是来解决这些问题的</p>
+<blockquote>
+<p>微服务架构风格是一种将一个单一应用程序开发为一组小型服务的方法，每个服务运行在自己的进程中，服务间采用轻量级通信机制（通常为 RESTful 形式的 API）。这些服务围绕业务能力构建并可以通过全自动部署机制进行部署，这些服务共用一个最小型的集中式管理，服务可用不同的语言开发，使用不同的数据存储技术。</p>
+</blockquote>
+<p>相比单体架构，微服务有以下优势</p>
+<ul>
+<li>易于开发和维护：一个微服务只会关注某个特定的业务功能，结构清晰，代码量较少</li>
+<li>局部修改容易部署：单体应用中只要有修改就需要重新部署整个应用，而在微服务中只需要部署被修改的微服务即可</li>
+<li>技术栈不受限：每个微服务可以根据业务的需要有不同的技术选型，比如 Java、Node.js 等</li>
+<li>按需伸缩：根据每个微服务的业务特性实现细粒度的拓展，比如对于高 IO 的微服务可以使用高性能的磁盘比如 SSD，对于计算密集型的微服务可以增加 CPU 等提高计算能力</li>
+</ul>
+<p>微服务看似很好的解决了这些问题，但实际上它也带来了一些技术挑战，比如运维要求高、接口成本的代价大以及重复劳动等问题，因为我们要正确的看待，根据自身业务的需要决定是否要使用它</p>
+<h4 id="框架和平台"><a href="#框架和平台" class="headerlink" title="框架和平台"></a>框架和平台</h4><p>相对于单体应用的交付，微服务的应用要复杂的多，这里技术选型方面主要从框架和平台考虑。Spring 技术栈较为全面，文档丰富、社区活跃，所以使用 SpringCloud 作为主要框架。微服务的运行并不绑定特定平台，最后将演示如何使用 docker 运行微服务</p>
+<h4 id="微服务开发框架-SpringCloud"><a href="#微服务开发框架-SpringCloud" class="headerlink" title="微服务开发框架 SpringCloud"></a>微服务开发框架 SpringCloud</h4><p>什么是 SpringCloud ？</p>
+<blockquote>
+<p>SpringCloud 是在 SpringBoot 基础上构建的，用于快速构建分布式系统的通用模式的工具集</p>
+</blockquote>
+<p>SpringCloud 开箱即用，启动快速，组件丰富，功能齐全，并且选型丰富、中立，比如就服务发现这个功能，SpringCloud 并没有绑定技术栈，开发者可以自由选择使用 Eureka、Zookeeper 或者 Consul 来实现</p>
+<p>下面就正式开始进入微服务实战，本节以电影系统为模型，搭建基础的电影模块和用户模块，其中电影模块是服务消费者，用户模块是服务提供者，电影模块需要从用户模块查询用户信息</p>
+<blockquote>
+<p>服务消费者：服务的调用方（依赖其他服务的服务）</p>
+<p>服务提供者：服务的被调用方（为其他服务提供服务的服务）</p>
+</blockquote>
+<h4 id="搭建"><a href="#搭建" class="headerlink" title="搭建"></a>搭建</h4><p>版本</p>
+<ul>
+<li>SpringBoot 1.5.6.RELEASE</li>
+<li>SpringCloud Dalston.SR2</li>
+<li>JDK 1.8</li>
+<li>Maven 3.5.0</li>
+</ul>
+<h5 id="父模块"><a href="#父模块" class="headerlink" title="父模块"></a>父模块</h5><p>首先新建一个以 pom 形式组织的父模块，导入依赖版本规定，pom文件如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.6.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">project.reporting.outputEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.reporting.outputEncoding</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>Dalston.SR2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h5 id="用户模块"><a href="#用户模块" class="headerlink" title="用户模块"></a>用户模块</h5><p>在此父工程下新建一个模块，artifactId 为 microservice-provider-user，它是一个 web 应用，提供了根据用户 id 查询用户信息的一个接口，pom 如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>microservice-provider-user<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-jpa<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.h2database<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>h2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>处于简单的考虑，这里使用了 h2 内存数据库和 jpa 形式访问数据库，由于是一个 web 项目，因此我们添加了依赖：spring-boot-starter-web</p>
+<p>在 user 模块中新建一个controller</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> zlren</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2017-11-07</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"user"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> UserRepository userRepository;</span><br><span class="line">  </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据 userid 查询用户信息</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> id</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> user信息</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> User <span class="title">findById</span><span class="params">(@PathVariable Long id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.userRepository.findOne(id);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中 User 如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Entity</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="meta">@GeneratedValue</span>(strategy = GenerationType.AUTO)</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="keyword">private</span> Integer age;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>UserRepository 如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Repository</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将 h2 数据库的初始化和数据 sql 文件置于 resources 目录下</p>
+<p>schema.sql</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> <span class="keyword">user</span> <span class="keyword">if</span> <span class="keyword">exists</span>;</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">user</span> (<span class="keyword">id</span> <span class="built_in">bigint</span> <span class="keyword">generated</span> <span class="keyword">by</span> <span class="keyword">default</span> <span class="keyword">as</span> <span class="keyword">identity</span>, username <span class="built_in">varchar</span>(<span class="number">255</span>), age <span class="built_in">int</span>, primary <span class="keyword">key</span> (<span class="keyword">id</span>));</span><br></pre></td></tr></table></figure>
+<p>data.sql</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">user</span> (<span class="keyword">id</span>, username, age) <span class="keyword">values</span> (<span class="number">1</span>,<span class="string">'Tom'</span>,<span class="number">12</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">user</span> (<span class="keyword">id</span>, username, age) <span class="keyword">values</span> (<span class="number">2</span>,<span class="string">'Jerry'</span>, <span class="number">23</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">user</span> (<span class="keyword">id</span>, username, age) <span class="keyword">values</span> (<span class="number">3</span>,<span class="string">'Reno'</span>, <span class="number">44</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">user</span> (<span class="keyword">id</span>, username, age) <span class="keyword">values</span> (<span class="number">4</span>,<span class="string">'Josh'</span>, <span class="number">55</span>);</span><br></pre></td></tr></table></figure>
+<p>application.yml 配置如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line"><span class="attr">  port:</span> <span class="number">7900</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line"><span class="attr">  application:</span></span><br><span class="line"><span class="attr">    name:</span> <span class="string">microservice-provider-user</span>    <span class="comment"># 项目名称尽量用小写</span></span><br><span class="line"><span class="attr">  jpa:</span></span><br><span class="line"><span class="attr">    generate-ddl:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">    show-sql:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">    hibernate:</span></span><br><span class="line"><span class="attr">      ddl-auto:</span> <span class="string">none</span></span><br><span class="line"><span class="attr">  datasource:</span>                           <span class="comment"># 指定数据源</span></span><br><span class="line"><span class="attr">    platform:</span> <span class="string">h2</span>                        <span class="comment"># 指定数据源类型</span></span><br><span class="line"><span class="attr">    schema:</span> <span class="attr">classpath:schema.sql</span>        <span class="comment"># 指定h2数据库的建表脚本</span></span><br><span class="line"><span class="attr">    data:</span> <span class="attr">classpath:data.sql</span>            <span class="comment"># 指定h2数据库的初始数据</span></span><br><span class="line"><span class="attr">logging:</span></span><br><span class="line"><span class="attr">  level:</span></span><br><span class="line"><span class="attr">    root:</span> <span class="string">INFO</span></span><br><span class="line">    <span class="string">org.hibernate:</span> <span class="string">INFO</span></span><br><span class="line">    <span class="string">org.hibernate.type.descriptor.sql.BasicBinder:</span> <span class="string">TRACE</span></span><br><span class="line">    <span class="string">org.hibernate.type.descriptor.sql.BasicExtractor:</span> <span class="string">TRACE</span></span><br></pre></td></tr></table></figure>
+<p>启动 user 模块，访问 localhost:7900/user/1，显示如下结果，表示从 h2 数据库中查到了对应的数据</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1flbrsl7vzij30b804omxd.jpg" alt=""></p>
+<h5 id="电影模块"><a href="#电影模块" class="headerlink" title="电影模块"></a>电影模块</h5><p>同理新建一个子模块为 microservice-consumer-movie，它同样是一个 web 应用，pom 如下（只用添加 web 的起始依赖即可）</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在 movie 中新建一个 controller</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"movie"</span>)</span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MovieController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RestTemplate restTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/user/&#123;id&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> User <span class="title">findById</span><span class="params">(@PathVariable Long id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.restTemplate.getForObject(<span class="string">"http://localhost:7900/user/"</span> + id, User.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中 RestTemplate 需要注入成 Spring 中的 Bean</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RestTemplate <span class="title">restTemplate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RestTemplate();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>application.yml</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line"><span class="attr">  port:</span> <span class="number">7901</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line"><span class="attr">  application:</span></span><br><span class="line"><span class="attr">    name:</span> <span class="string">microservice-consumer-movie</span>    <span class="comment"># 项目名称尽量用小写</span></span><br></pre></td></tr></table></figure>
+<p>启动 movie 模块，访问 localhost:7901/movie/user/1，得到如下结果，说明在 movie 中调用了 user 模块中提供的用户查询的接口，这便实现了微服务之间的调用</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1flbs1rlywmj30ad04qweq.jpg" alt=""></p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>我们实现了一个用户微服务和一个电影微服务，并在电影微服务中使用了 RestTemplate 调用用户微服务中的 RESTful 形式的 API，一切都很好。真的是这样吗？</p>
+<p>目前存在的最大的问题是硬编码，来看一下 MovieController</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="keyword">this</span>.restTemplate.getForObject(<span class="string">"http://localhost:7900/user/"</span> + id, User.class);</span><br></pre></td></tr></table></figure>
+<p>在调用用户微服务的时候，将其 IP 地址和端口硬编码在代码中，这显示是不够灵活的。当然这时候我们会想到可以将这两个参数配在配置文件中，并使用 SpringBoot 中的 @Value 注解，但是这样依然是不够优雅</p>
+<ul>
+<li>如果服务提供者的网络信息发生了改变，我们依然需要手动更新这些信息</li>
+<li>生产环境中为了高可用，同一个微服务要部署很多个实例，这样的配置显然不能实现动态的伸缩和发现</li>
+</ul>
+<p>下一节将介绍微服务框架中的 <code>服务发现</code> 组件，看看它的出现为我们带来了怎样的便利</p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/spring-cloud/">spring-cloud</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

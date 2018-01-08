@@ -1,0 +1,155 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>SpringCloud 微服务实战（服务发现组件） | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="上一节我们搭建了最基础的两个微服务，他们分别是服务提供者 microservice-provider-user 与服务消费者 microservice-provider-movie，并使用 RestTemplate 成功的在消费者端调用了提供者的服务，但是也看到了存在一些问题：每次调用的时候需要传入服务提供者的 IP 地址和端口号。想象一下如果 user 服务改变了地址和端口，那些服务消费者（可能有多个）都需要更改，有人可能会说可以把 user 服务的地址和端口写成配置文件，这样相比硬编码在代码中确实要好一些，但是仍然不够优雅">
+  
+
+  
+  
+  <meta name="keywords" content="spring-cloud">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="SpringCloud 微服务实战（服务发现组件）"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>SpringCloud 微服务实战（服务发现组件）</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/SpringCloud-微服务实战（服务发现组件）/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T12:00:48.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <p>上一节我们搭建了最基础的两个微服务，他们分别是服务提供者 microservice-provider-user 与服务消费者 microservice-provider-movie，并使用 RestTemplate 成功的在消费者端调用了提供者的服务，但是也看到了存在一些问题：每次调用的时候需要传入服务提供者的 IP 地址和端口号。想象一下如果 user 服务改变了地址和端口，那些服务消费者（可能有多个）都需要更改，有人可能会说可以把 user 服务的地址和端口写成配置文件，这样相比硬编码在代码中确实要好一些，但是仍然不够优雅</p>
+<a id="more"></a>
+<p>为了解决这个问题，服务的消费者需要一个强大的服务发现机制，它可以使用这种机制获取服务提供者的网络信息。重点来了：不仅如此，即使服务提供者的信息发生了变化，服务消费者也无需修改任何配置</p>
+<p>在微服务架构中，提供这种能力的组件叫做 <code>服务发现组件</code>，这是一个非常关键的组件</p>
+<p>有了服务发现组件后，各个微服务（包括服务消费者和提供者）在启动的时候会将自己的网络地址等信息注册到服务发现组件上，服务发现组件会存储这些信息。服务消费者从发现组件中查询提供者的网络信息，并使用该地址调用提供者提供的服务。各个微服务与服务发现组件使用一定机制通信，如果服务发现组件发现某个微服务长时间没有与自己通信就会认为这个服务出现了故障，接下来就会注销它。</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fm1j5imar8j30a505zdjg.jpg" alt="服务发现组件架构图"></p>
+<p>SpringCloud 中提供了多种服务发现组件的支持，例如 Eureka、Consul 和 Zookeeper，本节以 Eureka 为例简单说明它的使用</p>
+<h4 id="Eureka-Server"><a href="#Eureka-Server" class="headerlink" title="Eureka Server"></a>Eureka Server</h4><p>在父工程下新建一个模块，artifactId 为 microservice-eureka-server，需要引入 eureka 相关的依赖，pom 如下（给 server 加入了密码功能所以同时引入了 security）</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-eureka-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其中 resources 目录下新建 application.yml，增加如下配置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line"><span class="attr">  port:</span> <span class="number">8761</span></span><br><span class="line"><span class="attr">eureka:</span></span><br><span class="line"><span class="attr">  instance:</span></span><br><span class="line"><span class="attr">    hostname:</span> <span class="string">eureka-server</span>         <span class="comment"># 指定该Eureka实例的主机名</span></span><br><span class="line"><span class="attr">  client:</span> <span class="comment"># 一个eureka-server同时也是一个eureka-client，ha下配成server的集群 每个server对于其他server就是client 因为现在不是集群，所以下面两个选项都是false</span></span><br><span class="line"><span class="attr">    registerWithEureka:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">    fetchRegistry:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">    serviceUrl:</span></span><br><span class="line"><span class="attr">      defaultZone:</span> <span class="attr">http://$&#123;security.user.name&#125;:$&#123;security.user.password&#125;@localhost:$&#123;server.port&#125;/eureka</span></span><br><span class="line"><span class="attr">security:</span></span><br><span class="line"><span class="attr">  basic:</span></span><br><span class="line"><span class="attr">    enabled:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">  user:</span></span><br><span class="line"><span class="attr">    name:</span> <span class="string">user</span></span><br><span class="line"><span class="attr">    password:</span> <span class="string">password123</span></span><br></pre></td></tr></table></figure>
+<p>新建主类入口如下，声明成一个 EurekaServer 非常简单，只需要加上 @EnableEurekaServer 注解即可</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableEurekaServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EurekaServerApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(EurekaServerApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>启动它，访问 8761 端口看到如下界面（需要输入密码，就是在配置文件中的 user 和 password123），这时可以看到没有实例注册在本服务中心</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fm1k9vvoeuj31kw13k7g6.jpg" alt=""></p>
+<h4 id="改造-user-和-movie-模块"><a href="#改造-user-和-movie-模块" class="headerlink" title="改造 user 和 movie 模块"></a>改造 user 和 movie 模块</h4><p>将这两个模块添加 eureka 相关的依赖并注册到 eureka-server上，首先修改 pom 文件，增加</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-eureka<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在主类上增加注解 @EnableEurekaClient</p>
+<p>模块的配置文件增加如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">eureka:</span></span><br><span class="line"><span class="attr">  client:</span></span><br><span class="line"><span class="attr">    service-url:</span></span><br><span class="line"><span class="attr">      defaultZone:</span> <span class="attr">http://user:password123@localhost:8761/eureka</span></span><br><span class="line"><span class="attr">  instance:</span></span><br><span class="line"><span class="attr">    prefer-ip-address:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>这时候启动 user 和 movie，刷新 eureka-server 的监控页面，可以在最下面标红处看到新注册了两个服务（这时候中间有一些红字提示我们 eureka-server 进入了安全模式，有兴趣的同学可以自己去了解下）</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fm1kd6i9efj31kw13kk85.jpg" alt=""></p>
+<p>这时候就可以将调用服务的语句改为</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="keyword">this</span>.restTemplate.getForObject(<span class="string">"http://microservice-provider-user/user/"</span> + id, User.class);</span><br></pre></td></tr></table></figure>
+<p>这里 movie 调用 user 的服务的时候没有显式的指明 user 模块的网络信息，而是仅仅指定了 user 在 eureka-server 上的 virtual-name 就可以实现调用。那么这时候如果再出现 user 模块的网络信息的变动，我们不用改动这里的调用语句依然可以实现正确的调用，这就是服务发现组件为我们提供的便利。</p>
+<p>到这里一个简答的服务发现组件就介绍完了，我们知道微服务的出现为服务的横向拓展提供了便利，当 user 模块部署了多个的时候，其他的消费者的请求如何分发到不同的服务提供者呢？下一节我们介绍微服务框架中的负载均衡</p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/spring-cloud/">spring-cloud</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

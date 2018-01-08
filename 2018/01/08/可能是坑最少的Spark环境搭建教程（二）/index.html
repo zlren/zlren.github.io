@@ -1,0 +1,296 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>可能是坑最少的Spark环境搭建教程（二） | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="环境介绍
+CentOS 7.3 - 1611 Minimal
+JDK 1.8
+Hadoop 2.7.4
+HBase 1.2.6
+Scala 2.11.8
+Spark 2.1.1
+Zookeeper 3.4.8">
+  
+
+  
+  
+  <meta name="keywords" content="">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="可能是坑最少的Spark环境搭建教程（二）"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>可能是坑最少的Spark环境搭建教程（二）</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/可能是坑最少的Spark环境搭建教程（二）/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T11:50:12.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h4 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h4><ul>
+<li>CentOS 7.3 - 1611 Minimal</li>
+<li>JDK 1.8</li>
+<li>Hadoop 2.7.4</li>
+<li>HBase 1.2.6</li>
+<li>Scala 2.11.8</li>
+<li>Spark 2.1.1</li>
+<li>Zookeeper 3.4.8</li>
+</ul>
+<a id="more"></a>
+<p>我直接用的是 root 账户，虽然这样不太好，但是可以简单粗暴的避免一些权限问题</p>
+<p>所有的安装包置于 /opt 目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fll1mf95wrj30hx06d407.jpg" alt="所需安装包列表"></p>
+<h4 id="2-安装配置"><a href="#2-安装配置" class="headerlink" title="2 安装配置"></a>2 安装配置</h4><p>首先安装 <code>CentOS-7-x86_64-Minimal-1611.iso</code>，安装完成后进行如下配置</p>
+<h5 id="2-1-IP-地址"><a href="#2-1-IP-地址" class="headerlink" title="2.1 IP 地址"></a>2.1 IP 地址</h5><p>配置过程略，可以 Google 一下网上有很多的教程</p>
+<p>本教程的 IP 地址为 <code>10.109.246.66</code></p>
+<h5 id="2-2-关闭并禁用防火墙"><a href="#2-2-关闭并禁用防火墙" class="headerlink" title="2.2 关闭并禁用防火墙"></a>2.2 关闭并禁用防火墙</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld.service</span><br><span class="line">systemctl <span class="built_in">disable</span> firewalld.service</span><br></pre></td></tr></table></figure>
+<h5 id="2-3-hostname"><a href="#2-3-hostname" class="headerlink" title="2.3 hostname"></a>2.3 hostname</h5><p>修改主机名</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hostname data</span><br></pre></td></tr></table></figure>
+<p>修改 hosts，增加以下两行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/hosts</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1 localhost</span><br><span class="line">10.109.246.66 data</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll1th42hsj30hr02oq31.jpg" alt=""></p>
+<h5 id="2-4-SSH"><a href="#2-4-SSH" class="headerlink" title="2.4 SSH"></a>2.4 SSH</h5><p>修改 <code>enforcing</code> 为 <code>disabled</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/sysconfig/selinux</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll1vmun4uj30cw05074x.jpg" alt=""></p>
+<p>修改完成后重启 Linux</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reboot</span><br></pre></td></tr></table></figure>
+<p> 启动完成后，继续执行下面的命令，并一路回车，这样就会生成 <code>ssh key</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll1ygj9wij30d109i3zc.jpg" alt=""></p>
+<p>接下来配置 <code>SSH 免密码登录</code>，为了保险起见，这里同时配置 localhost、data（hostname） 和 10.109.246.66（IP 地址） 共三个地址</p>
+<p>执行命令的过程中会输入 yes 和服务器密码</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id localhost</span><br><span class="line">ssh-copy-id data</span><br><span class="line">ssh-copy-id 10.109.246.66</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>ssh-copy-id 是什么？</p>
+<p>免密登录的原理是将客户端的 SSH 公钥 id_rsa.pub 加到服务器的 known_hosts，这样以后再登录的时候服务器检查自己的 known 文件，就直接允许登录。我们可以手动把客户端的公钥追加到服务器的 known 文件，但是这样比较繁琐，ssh-copy-id 是用来简化这个操作的一条命令。这条命令在客户端执行，参数为服务器的地址，这里由于我们是本机免密码，所以后面三个标识本质上都是本机地址</p>
+</blockquote>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll20tgkg7j30q10bo41h.jpg" alt=""></p>
+<h5 id="2-5-JDK-1-8"><a href="#2-5-JDK-1-8" class="headerlink" title="2.5 JDK 1.8"></a>2.5 JDK 1.8</h5><p>CentOS 7 以 Minimal 形式安装后系统比较干净，JDK 可以直接安装，系统不会自带 JAVA 相关的组件</p>
+<p>RPM 版的安装方式</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm -ivh jdk-8u144-linux-x64.rpm</span><br></pre></td></tr></table></figure>
+<p>安装完成后修改系统环境变量，这里一次性配齐了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将下面这些配置在profile文件的末尾</span></span><br><span class="line"><span class="built_in">export</span> HBASE_HOME=/root</span><br><span class="line"><span class="built_in">export</span> HIVE_HOME=</span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=</span><br><span class="line"><span class="built_in">export</span> ZOOKEEPER_HOME=</span><br><span class="line"><span class="built_in">export</span> SCALA_HOME=</span><br><span class="line"><span class="built_in">export</span> SPARK_HOME=</span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_144</span><br><span class="line"><span class="built_in">export</span> CLASSPATH=.:<span class="variable">$JAVA_HOME</span>/jre/lib/rt.jar:<span class="variable">$JAVA_HOME</span>/lib/dt.jar:<span class="variable">$JAVA_HOME</span>/lib/tools.jar</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$HADOOP_HOME</span>/bin:<span class="variable">$HADOOP_HOME</span>/sbin:<span class="variable">$HIVE_HOME</span>/bin:<span class="variable">$ZOOKEEPER_HOME</span>/bin:<span class="variable">$SCALA_HOME</span>/bin:<span class="variable">$SPARK_HOME</span>/bin:<span class="variable">$HBASE_HOME</span>/bin</span><br></pre></td></tr></table></figure>
+<p>修改完成后保存退出，并执行下面的命令生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+<p>测试 <code>jdk</code> 是否安装成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -version</span><br></pre></td></tr></table></figure>
+<p>出现下图表示没有问题</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fjh0da20zvj30ej02gq3b.jpg" alt=""></p>
+<h5 id="2-7-Hadoop"><a href="#2-7-Hadoop" class="headerlink" title="2.7 Hadoop"></a>2.7 Hadoop</h5><p>解压 <code>hadoop</code> 安装包</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br><span class="line">tar -zxvf hadoop-2.7.4.tar.gz -C /root/</span><br></pre></td></tr></table></figure>
+<p>进入 <code>hadoop</code> 目录，新建 3 个文件夹</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/hadoop-2.7.4</span><br><span class="line">mkdir data name tmp</span><br></pre></td></tr></table></figure>
+<p>进入配置文件目录，开始配置</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> etc/hadoop</span><br></pre></td></tr></table></figure>
+<p>hadoop-env.sh</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim hadoop-env.sh</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll2joddqbj309901c74a.jpg" alt=""></p>
+<p>core-site.xml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim core-site.xml</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://data:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>file:/root/hadoop-2.7.4/etc/hadoop/tmp<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fll2otloqxj30cz05qt98.jpg" alt=""></p>
+<p>hdfs-site.xml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim hdfs-site.xml</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.name.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>file:/root/hadoop-2.7.4/name<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.datanode.data.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>file:/root/hadoop-2.7.4/data<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fjh1ykd5fpj30bb07qq3o.jpg" alt=""></p>
+<p>yarn-site.xml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim yarn-site.xml</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.hostname<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>data<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>mapreduce_shuffle<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1fll2o0ek8xj30c306dwf6.jpg" alt=""></p>
+<p>mapred-site.xml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp mapred-site.xml.template mapred-site.xml</span><br><span class="line">vim mapred-site.xml</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.framework.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>yarn<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fjh20fvb11j309s02wmxb.jpg" alt=""></p>
+<p>slaves</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim slaves</span><br></pre></td></tr></table></figure>
+<p>将里面唯一的一行 <code>localhost</code> 替换成 <code>data</code>，因为是单节点，所以它既是 NameNode 也是 DataNode</p>
+<p>到这里配置完成，接下来启动 hadoop</p>
+<p>环境变量已经配置好，可以直接使用命令。首次启动 <code>HDFS</code> 需要格式化</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop namenode -format</span><br></pre></td></tr></table></figure>
+<p>看到下图出现 hostname / IP 表明成功格式化</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll2u5ri5nj30sh0fjdl7.jpg" alt=""></p>
+<p>启动 HDFS，启动好后可以通过 web 的 <code>50070</code> 端口查看</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start-dfs.sh</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll2wgv7ytj30on052wgp.jpg" alt=""></p>
+<p>使用浏览器访问服务器的 50070 端口</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll2yfqs4uj30xf0l141v.jpg" alt=""></p>
+<p>我们在自己的电脑上可以配置 host，使得 data 指向服务器的 IP 地址，以后访问的时候就直接用 data 就可以，类似于域名的那种，而不用每次都敲 IP 地址</p>
+<blockquote>
+<p>Windows 和 macOS 修改 host 的方法不同，如果是 mac 的小伙伴推荐使用一个工具叫做 SwitchHost</p>
+</blockquote>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll333wpmtj305l01u3yd.jpg" alt=""></p>
+<p>如何验证自己的电脑 host 有没有配置好呢？在本机使用如下命令，实际上它会在 host 中找到对应的 IP 地址，如果和服务器一致就表明没有问题</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ping data</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll34a36j2j30ll0eagnp.jpg" alt=""></p>
+<p>在服务器上，使用 jps 命令看一下当前运行的 java 进程</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll390lyxdj306j03j3yq.jpg" alt=""></p>
+<p>可以看到出现了 NameNode、DataNode 以及 SecondaryNameNode，表明 HDFS 在正常工作</p>
+<p>下面我们简单测试一下 HDFS，需要先准备一个测试文件 hello.txt，里面自己随便写一些内容</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fll3gbgyh6j30g003ot9f.jpg" alt=""></p>
+<p>这时候也可以通过 web 的 50070 端口查看 HDFS 上的文件列表，上面已经出现了刚刚上传的 hello.txt 文件，可以下载下来比对一下内容和刚开始自己写入的内容是否一致</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll3ha6l60j30xf0l10us.jpg" alt=""><br>接下来按下面的命令启动 YARN，启动好后可以通过 8088 端口查看</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start-yarn.sh</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll3b8km1kj30lm02i3z2.jpg" alt=""></p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fll3bu70tkj30xf0l1jvk.jpg" alt=""></p>
+<p>在 web 界面里面可以查看 YARN 的详细信息，例如资源情况，任务详情等</p>
+<p>到这里再次执行 <code>jps</code> 命令，查看启动的进程</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jps</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll3dqbuo9j307704gdgb.jpg" alt=""></p>
+<p>相比之前，多了 ResourceManager 和 NodeManager，这正是 YARN 的资源管理组件</p>
+<p>这里也简单测试一下 YARN，跑一个 Hadoop 自带的 example 中的任意一个 MapReduce 作业，我们以 pi 为例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/hadoop-2.7.4/share/hadoop/mapreduce</span><br><span class="line">hadoop jar hadoop-mapreduce-examples-2.7.4.jar pi 6 6</span><br></pre></td></tr></table></figure>
+<p>第二条命令运行完以后会出现如下结果，简单解释一下：example 那个 jar 包里面有很多的官方自带的例子，其中 pi 是其中一个，它用来计算圆周率的值，最后的两个 6 是两个参数，理论上值越大最后求出的 pi 的精度越高，读者可以修改最后的两个值改的大一些，看看结果有什么不同</p>
+<p>另外在任务运行的过程中可以通过 8088 端口查看 YARN 的监控数据，其中会显示当前执行的任务的详情</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1fll44xbriaj30e10hognt.jpg" alt=""></p>
+<p>在任务的执行过程中不断使用 jps 命令查看进程情况</p>
+<p>首先是出现了 RunJar</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll4jw4b2jj305o03nq37.jpg" alt=""></p>
+<p>然后出现了 MRAppMaster</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1fll4kk50cqj305g040gm0.jpg" alt=""></p>
+<p>最后出现了多个 YarnChild</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1fll4m5o4j9j305506kwfd.jpg" alt=""></p>
+<p>任务结束后在 web 上可以看到这个任务的详情</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1fll4nzylifj31kw124wvs.jpg" alt=""></p>
+<h3 id="Scala"><a href="#Scala" class="headerlink" title="Scala"></a>Scala</h3><p>下面我们安装 Scala，它是一种运行在 JVM 上的编程语言，Spark 就是用 scala 开发的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br><span class="line">tar -zxvf scala-2.11.8.tgz -C /root/</span><br></pre></td></tr></table></figure>
+<p>修改配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> SCALA_HOME=/root/scala-2.11.8</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1flnj9aar6sj30bn045mxm.jpg" alt=""></p>
+<p>修改完成后 source 一下使之生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+<p>测试一下，出现 scala 的版本证明安装完成</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1flnjd1ofr9j30f001ndfw.jpg" alt=""></p>
+<h3 id="Spark"><a href="#Spark" class="headerlink" title="Spark"></a>Spark</h3><p>解压安装包</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br><span class="line">tar -zxvf spark-2.1.1-bin-hadoop2.7.tgz -C /root/</span><br></pre></td></tr></table></figure>
+<p>配置环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1flnp496qjpj30cj04tdgt.jpg" alt=""></p>
+<p>生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+<p>进入 Spark 配置目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/spark-2.1.1-bin-hadoop2.7/conf</span><br></pre></td></tr></table></figure>
+<p>spark-env.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp spark-env.sh.template spark-env.sh</span><br><span class="line">vim spark-env.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 最后增加</span><br><span class="line">export JAVA_HOME=/usr/java/jdk1.8.0_144</span><br><span class="line">export HADOOP_HOME=/root/hadoop-2.7.4</span><br><span class="line">export HADOOP_CONF_DIR=/root/hadoop-2.7.4/etc/hadoop</span><br><span class="line">export SCALA_HOME=/root/scala-2.11.8</span><br><span class="line">SPARK_MASTER_IP=data</span><br><span class="line">SPARK_LOCAL_DIRS=/root/spark-2.1.1-bin-hadoop2.7</span><br><span class="line">SPARK_DRIVER_MEMORY=2G</span><br></pre></td></tr></table></figure>
+<p>slaves：将原来的内容删掉，增加一行 data</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp slaves.template slaves</span><br><span class="line">vim slaves</span><br></pre></td></tr></table></figure>
+<p>启动 Spark</p>
+<blockquote>
+<p>Spark 目录下的 sbin 目录是启动和停止 spark 相关组件的命令，但是它和 Hadoop 的 sbin 目录下的脚本在命名上有些是一致的（比如 start-all.sh），所以没有把 Spark 的 sbin 目录加入的系统的环境变量中</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/spark-2.1.1-bin-hadoop2.7/sbin</span><br><span class="line">./start-all.sh</span><br></pre></td></tr></table></figure>
+<p>这时候使用 jps 命令查看进程，可以发现多了 <code>Worker</code> 和 <code>Master</code></p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1flnpfztfadj305304fdg2.jpg" alt=""></p>
+<p>测试：由于测试的命令比较长，新建一个脚本文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim test_spark.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 增加如下内容</span></span><br><span class="line">spark-submit \</span><br><span class="line">--class org.apache.spark.examples.SparkPi \</span><br><span class="line">--num-executors 1 \</span><br><span class="line">--driver-memory 1G \</span><br><span class="line">--executor-memory 1G \</span><br><span class="line">--executor-cores 1 \</span><br><span class="line">/root/spark-2.1.1-bin-hadoop2.7/examples/jars/spark-examples_2.11-2.1.1.jar</span><br></pre></td></tr></table></figure>
+<p>添加执行权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod 777 test_spark.sh</span><br></pre></td></tr></table></figure>
+<p>执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./test_spark.sh</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1flnpun7g5yj30e1055mxv.jpg" alt=""></p>
+<p>在众多的控制台日志中找到 <code>Pi is rough 3.141xxxx</code>  说明一切是 OK 的</p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

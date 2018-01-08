@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>SSH 原理 | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="SSH 是连接 Linux 服务器中最常用的协议和工具，无论是自己本地开的虚拟机还是远端的云服务器。前段时间在配置 Hadoop 以及 Spark 集群的过程中用到了 SSH免密登录，虽然经常用 SSH 但用到的都是最基本的密码登录，这次就趁着这个机会，好好地了解了一下 SSH 的免密登录原理">
+  
+
+  
+  
+  <meta name="keywords" content="">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="SSH 原理"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>SSH 原理</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/SSH-原理/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T11:56:46.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <p><code>SSH</code> 是连接 Linux 服务器中最常用的协议和工具，无论是自己本地开的虚拟机还是远端的云服务器。前段时间在配置 Hadoop 以及 Spark 集群的过程中用到了 <code>SSH免密登录</code>，虽然经常用 SSH 但用到的都是最基本的密码登录，这次就趁着这个机会，好好地了解了一下 SSH 的免密登录原理</p>
+<a id="more"></a>
+<h4 id="生成-SSH-key"><a href="#生成-SSH-key" class="headerlink" title="生成 SSH-key"></a>生成 SSH-key</h4><p>只需执行下面这条命令，然后一路回车（这样没有设置额外的密码，是比较常用的方式）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+<p>然后进入下面的目录，就可以看到有两个文件 <code>id_rsa</code> 和 <code>id_rsa.pub</code>，其中后者是公钥。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.ssh</span><br></pre></td></tr></table></figure>
+<h4 id="配置免密登录"><a href="#配置免密登录" class="headerlink" title="配置免密登录"></a>配置免密登录</h4><p>免密登录的配置很简单，如果A机器需要免密登录B机器，在A机器上执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id &lt;username of B&gt;@&lt;ip of B&gt;</span><br></pre></td></tr></table></figure>
+<p><code>ssh-copy-id</code>是一个简化的命令，它其实是一个脚本，做的事情就是将A的公钥传到B机器上，并添加到B机器的<code>~/.ssh/authorized_keys</code>文件中，这样B机器就有了A机器的公钥。</p>
+<p>关于<code>ssh-copy-id</code>命令，Linux中是可以直接使用的，macOS在10.12中默认加入了这条命令，在10.11以及之前的版本中需要通过brew安装。</p>
+<p>这时候在A机器上执行SSH连接B机器的命令就会免输密码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh &lt;username of B&gt;@&lt;ip of B&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="免密登陆的原理"><a href="#免密登陆的原理" class="headerlink" title="免密登陆的原理"></a>免密登陆的原理</h4><p>B机器的<code>authorized_keys</code>文件中保存了A机器的公钥，A机器便实现了SSH免密码登录B机器，这背后的原理是什么？</p>
+<ul>
+<li>当A机器发起连接B机器的请求</li>
+<li>B机器收到A的信息后，在<code>authorized_keys</code>中查找，发现有A的公钥</li>
+<li>B用A的公钥加密一个随机字符串，将加密后的结果发给A</li>
+<li>A用自己的私钥解密后，拿到原始未加密的字符串</li>
+<li>A把解密后的结果发给B</li>
+<li>B验证A解密后的结果是否和自己初始选的那个随机字符串是否一致，验证通过允许连接</li>
+</ul>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

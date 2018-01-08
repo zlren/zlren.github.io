@@ -1,0 +1,166 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java 版本的 MapReduce 入门作业：WordCount | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="上一节我们搭好了 Hadoop 2.7.4 环境，其中包括分布式存储系统 HDFS 和资源管理平台 YARN，这一节在此基础上我们开发一个 MapReduce 作业：WordCount
+
+什么是 WordCount ？
+我们首先提一个实际的需求，比如要分析今年十九大报告中的热词，什么是热词？就是那些出现频率高的词汇。首先将整篇报告分词，然后统计每个词语的词频，最后再进行排序，这样就可以得到热词了。可以看到这个过程中统计词频是很关键的一步。WordCount 就是这样的一个小应用，我们以英语文本为例，英文是不需要分词的，我们只需要统计每个单词出现的次数即可。
+比如『hello world hello java』，那么输出结果该是
+hello    2
+world    1
+java    1">
+  
+
+  
+  
+  <meta name="keywords" content="hadoop">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="Java 版本的 MapReduce 入门作业：WordCount"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>Java 版本的 MapReduce 入门作业：WordCount</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/Java-版本的-MapReduce-入门作业：WordCount/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T11:38:47.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <p>上一节我们搭好了 <strong>Hadoop 2.7.4</strong> 环境，其中包括<strong>分布式存储系统 HDFS</strong> 和<strong>资源管理平台 YARN</strong>，这一节在此基础上我们开发一个 MapReduce 作业：<strong>WordCount</strong></p>
+<blockquote>
+<p>什么是 WordCount ？</p>
+<p>我们首先提一个实际的需求，比如要分析今年十九大报告中的热词，什么是热词？就是那些出现频率高的词汇。首先将整篇报告分词，然后统计每个词语的词频，最后再进行排序，这样就可以得到热词了。可以看到这个过程中统计词频是很关键的一步。WordCount 就是这样的一个小应用，我们以英语文本为例，英文是不需要分词的，我们只需要统计每个单词出现的次数即可。</p>
+<p>比如『hello world hello java』，那么输出结果该是</p>
+<p>hello    2</p>
+<p>world    1</p>
+<p>java    1</p>
+</blockquote>
+<a id="more"></a>
+<p>首先创建一个 maven 工程，导入以下依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hadoop<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hadoop-common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.7.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hadoop<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hadoop-mapreduce-client-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.7.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.16.14<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>hadoop-common 包含了基础组件，client-core 包含了 MR 计算模型，lombok 是一个 Java 开发神器，可以简化代码等等一系列神器的功能</p>
+<p>少说废话直接上代码 WordCountApp</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> lab.zlren.hadoop;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.extern.slf4j.Slf4j;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.conf.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.LongWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Mapper;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Reducer;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 使用MapReduce开发WordCount应用</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> zlren</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2017-11-17</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCountApp</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyMapper</span> <span class="keyword">extends</span> <span class="title">Mapper</span>&lt;<span class="title">LongWritable</span>, <span class="title">Text</span>, <span class="title">Text</span>, <span class="title">LongWritable</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">        LongWritable one = <span class="keyword">new</span> LongWritable(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(LongWritable key, Text value, Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">            String line = value.toString();</span><br><span class="line">            String[] words = line.split(<span class="string">" "</span>);</span><br><span class="line">            <span class="keyword">for</span> (String word : words) &#123;</span><br><span class="line">                <span class="comment">// 通过context将map作业的结果输出</span></span><br><span class="line">                context.write(<span class="keyword">new</span> Text(word), one);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 归并操作</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyReducer</span> <span class="keyword">extends</span> <span class="title">Reducer</span>&lt;<span class="title">Text</span>, <span class="title">LongWritable</span>, <span class="title">Text</span>, <span class="title">LongWritable</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@param</span> key</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@param</span> values  shuffle之后，这里是个集合</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@param</span> context</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">reduce</span><span class="params">(Text key, Iterable&lt;LongWritable&gt; values, Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">            <span class="keyword">long</span> sum = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (LongWritable value : values) &#123;</span><br><span class="line">                <span class="comment">// 将次数累加</span></span><br><span class="line">                sum += value.get();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 结果交给上下文</span></span><br><span class="line">            context.write(key, <span class="keyword">new</span> LongWritable(sum));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException, InterruptedException </span>&#123;</span><br><span class="line"></span><br><span class="line">        Configuration configuration = <span class="keyword">new</span> Configuration();</span><br><span class="line">        Job job = Job.getInstance(configuration, <span class="string">"wordcount"</span>);</span><br><span class="line"></span><br><span class="line">        job.setJarByClass(WordCountApp.class);</span><br><span class="line"></span><br><span class="line">        FileInputFormat.setInputPaths(job, <span class="keyword">new</span> Path(args[<span class="number">0</span>]));</span><br><span class="line"></span><br><span class="line">        job.setMapperClass(MyMapper.class);</span><br><span class="line">        job.setMapOutputKeyClass(Text.class);</span><br><span class="line">        job.setMapOutputValueClass(LongWritable.class);</span><br><span class="line"></span><br><span class="line">        job.setReducerClass(MyReducer.class);</span><br><span class="line">        job.setOutputKeyClass(Text.class);</span><br><span class="line">        job.setOutputValueClass(LongWritable.class);</span><br><span class="line"></span><br><span class="line">        FileOutputFormat.setOutputPath(job, <span class="keyword">new</span> Path(args[<span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">        System.exit(job.waitForCompletion(<span class="keyword">true</span>) ? <span class="number">0</span> : <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        log.info(<span class="string">"哈哈"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>MR 计算模型有着严格的规定，必须是 Map 操作 + Reduce 操作，定义的两个类 MyMap 和 MyReducer 分别继承了 Mapper 和 Reducer，注意我们使用的是 Hadoop v2，包的路径是 <code>org.apache.hadoop.mapreduce.*</code>，这一点要注意，不要导入错误了。</p>
+<p>我们先来看 Mapper，分析其源码可知有 setup、map、cleanup 和 run 四个方法。其中 setup 一般是用来进行一些 map 前的准备工作，map 承担主要的处理工作，cleanup 是收尾工作如关闭文件或者执行 map 后的键值对分发等。run 方法提供了 setup-&gt;map-&gt;cleanup 的执行模板。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called once at the beginning of the task.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">setup</span><span class="params">(Context context</span></span></span><br><span class="line"><span class="function"><span class="params">)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    <span class="comment">// NOTHING</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called once for each key/value pair in the input split. Most applications</span></span><br><span class="line"><span class="comment"> * should override this, but the default is the identity function.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(KEYIN key, VALUEIN value,</span></span></span><br><span class="line"><span class="function"><span class="params">                   Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    context.write((KEYOUT) key, (VALUEOUT) value);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called once at the end of the task.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">cleanup</span><span class="params">(Context context</span></span></span><br><span class="line"><span class="function"><span class="params">)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    <span class="comment">// NOTHING</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Expert users can override this method for more complete control over the</span></span><br><span class="line"><span class="comment"> * execution of the Mapper.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> context</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    setup(context);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (context.nextKeyValue()) &#123;</span><br><span class="line">            map(context.getCurrentKey(), context.getCurrentValue(), context);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        cleanup(context);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于 MyMapper，输入的 key 是偏移量（LongWritable），value 是这一行的文本内容（Text），我们要做的是对这一行文本根据空格进行切分，然后将切分出来的每个单词映射成（key，1）的形式。读者可以思考下为什么要这样做</p>
+<p>对于 MyReducer，输入的 key 是每个单词，value 是固定值 1，我们要做的是将这些 1 累加起来，这样就计算出来每个单词出现的频率。到这里你可能会问，为什么可以直接累加？你怎么知道这些 key 都一样？</p>
+<p>这就要提到 map 和 reduce 阶段中间的 shuffle 过程，shuffle 保证 key 相同的键值对会被分发给同一个 reducer，所以我们才可以直接累加。所以写 MR 应用的时候，头脑中要时刻结合物理执行流程进行思考</p>
+<p>最后我们打包应用，由于我们是 maven 工程，可以直接用下面的命令打包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn clean package</span><br></pre></td></tr></table></figure>
+<p>在项目的 target 文件夹下会出现打包好的 jar 文件，将其上传到 Hadoop 服务器，运行如下命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop jar hadoop-learn-1.0.jar lab.zlren.hadoop.WordCountApp hdfs://data:9000/hello.txt hdfs://data:9000/wc/</span><br></pre></td></tr></table></figure>
+<p>在程序中我们将输入和输出设置成可配置的，所以最后的两个参数就是输入文件和输出文件夹的路径，需要提前将一个文本文件上传到 HDFS 上</p>
+<p>运行完成后结果如下</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1flm7wkuj36j30s70ly7b6.jpg" alt=""></p>
+<p>查看结果文件</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1flm7y2qyp2j30gv03v74s.jpg" alt=""></p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/hadoop/">hadoop</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

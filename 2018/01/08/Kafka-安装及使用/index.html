@@ -1,0 +1,200 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kafka 安装及使用 | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="Zookeeper 3.4.8
+Kafka 2.11-0.10.2.1
+2.11 表示 Scala 的版本，0.10 表示 Kafka 的版本
+
+
+
+
+data 是本机的 hostname，在所有配置 hostname 的地方都可以配成本机的 IP 地址">
+  
+
+  
+  
+  <meta name="keywords" content="">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="Kafka 安装及使用"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>Kafka 安装及使用</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/08/Kafka-安装及使用/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-08T11:55:43.000Z">
+          2018-01-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <ul>
+<li>Zookeeper 3.4.8</li>
+<li>Kafka 2.11-0.10.2.1<ul>
+<li>2.11 表示 Scala 的版本，0.10 表示 Kafka 的版本</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><code>data</code> 是本机的 hostname，在所有配置 hostname 的地方都可以配成本机的 IP 地址</p>
+</blockquote>
+<a id="more"></a>
+<h4 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a>Zookeeper</h4><p>解压安装包</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br><span class="line">tar -zxvf zookeeper-3.4.8.tar.gz -C /root/</span><br></pre></td></tr></table></figure>
+<p>配置系统环境变量，配置完成后使用 <code>source</code> 命令生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export ZOOKEEPER_HOME=/root/zookeeper-3.4.8</span><br></pre></td></tr></table></figure>
+<p>配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/zookeeper-3.4.8</span><br><span class="line">mkdir data</span><br><span class="line"><span class="built_in">cd</span> conf</span><br><span class="line">mv zoo_sample.cfg zoo.cfg</span><br><span class="line">vim zoo.cfg</span><br></pre></td></tr></table></figure>
+<p>将 <code>dataDir</code> 改为 <code>/root/zookeeper-3.4.8/data</code>，默认情况是 <code>/tmp</code> 目录下，每次 Linux 系统重启后 <code>tmp</code> 目录是要清空的</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fmap4cnydwj30b0021wem.jpg" alt=""></p>
+<p>启动（由于配置了环境变量，这条命令可以在任何地方使用，但是好像启动完成后会在当前目录有一个 zookeeper.out 文件，强迫症患者谨慎选择启动目录）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zkServer.sh start</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1fmap77mw8cj30cg028dg6.jpg" alt=""></p>
+<p>出现以上信息表示 Zookeeper 启动成功，这时候可以使用 <code>jps</code> 命令查看进程，其中标红处的就是 Zookeeper 进程，默认监听 2181 端口</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1fmap8lly34j305d04xdgb.jpg" alt=""></p>
+<h4 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h4><p>解压安装包</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br><span class="line">tar -zxvf kafka_2.11-0.10.2.1.tgz -C /root/</span><br></pre></td></tr></table></figure>
+<p>配置系统环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export KAFKA_HOME=/root/kafka_2.11-0.10.2.1</span><br></pre></td></tr></table></figure>
+<p>配置</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root/kafka_2.11-0.10.2.1</span><br><span class="line">mkdir kafka-logs</span><br><span class="line"><span class="built_in">cd</span> config</span><br><span class="line">vim server.properties</span><br></pre></td></tr></table></figure>
+<p>需要配置三处</p>
+<p>1 在 <code>broker.id下</code> 添加一行配置，将 <code>host.name</code> 配置成本机的 hostname</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">host.name=data</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fmapjy63qrj309u01uq2w.jpg" alt=""></p>
+<p>2 修改 <code>log.dirs</code> 的配置为之前创建的文件夹路径</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/root/kafka_2.11-0.10.2.1/kafka-logs</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fmapnqfh3hj30ae01fdft.jpg" alt=""></p>
+<p>3 将 <code>zookeeper.connect</code> 改为 <code>data:2181</code>，其实对于 zookeeper 和 kafka 在同一台机器上的情况来说是一回事</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tNc79ly1fmappjp05ej30gp02rwf9.jpg" alt=""></p>
+<p>启动</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-server-start.sh -daemon <span class="variable">$KAFKA_HOME</span>/config/server.properties &amp;</span><br></pre></td></tr></table></figure>
+<p><code>jps</code>  查看进程</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fmapyz8cjaj305805awet.jpg" alt=""></p>
+<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><p>创建 topic</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-topics.sh --create --zookeeper data:2181 --replication-factor 1 --partitions 1 --topic hello_topic</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws1.sinaimg.cn/large/006tNc79ly1fmaq1zacz2j30nx02wwfa.jpg" alt=""></p>
+<p>查看当前 topic 列表，这里显示出了刚刚创建的 topic：<code>hello_topic</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-topics.sh --list --zookeeper data:2181</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tNc79ly1fmaq3jowugj30da01gjre.jpg" alt=""></p>
+<p>创建一个生产者，向 hello_topic 发送消息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-console-producer.sh --broker-list data:9092 --topic hello_topic</span><br></pre></td></tr></table></figure>
+<p>创建一个消费者，这需要另起一个终端</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-console-consumer.sh --bootstrap-server data:9092 --topic hello_topic --from-beginning</span><br></pre></td></tr></table></figure>
+<p>注意生产者和消费者启动完成后会停留，这时候可以在生产者终端输入一些任意的文字，消息会很快的发送到消费者终端那里</p>
+<h4 id="单节点多-broker-的配置"><a href="#单节点多-broker-的配置" class="headerlink" title="单节点多 broker 的配置"></a>单节点多 broker 的配置</h4><p>上面的过程中是在单个节点上配置了单个 broker，如何在单个节点上配置多个 broker 呢？</p>
+<ul>
+<li>打开 server.properties 中关于 <code>listeners=PLAINTEXT://:9092</code> 的配置</li>
+<li>三个配置文件拷贝自之前修改过的 server.properties，其中需要保持三处不同<ul>
+<li>cp server.properties server-{n}.properties</li>
+<li>broker.id</li>
+<li>listeners=PLAINTEXT://:9092 最后的端口</li>
+<li>log.dirs=/root/kafka_2.11-0.10.2.1/kafka-logs 日志路径</li>
+</ul>
+</li>
+<li>启动时只需要指定各自 broker 的配置文件即可<ul>
+<li>kafka-server-start.sh -daemon $KAFKA_HOME/config/server-{n}.properties &amp;</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>
