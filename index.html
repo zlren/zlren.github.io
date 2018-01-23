@@ -45,9 +45,9 @@
   <nav class="site-navigation">
     <ul>
       
-        <li><a href="/">主页</a></li>
+        <li><a href="/">Home</a></li>
       
-        <li><a href="/archives">归档</a></li>
+        <li><a href="/archives">Archives</a></li>
       
     </ul>
   </nav>
@@ -55,6 +55,60 @@
 
     <main class="site-main posts-loop">
     
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2018/01/23/Autowired-自动装配与冲突/"><span>@Autowired 自动装配与冲突</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/23/Autowired-自动装配与冲突/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-23T05:55:29.000Z">
+          2018-01-23
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <p>今天在写代码的时候遇到这个情况</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fnqcyyt7nrj30f104vglv.jpg" alt=""></p>
+<p>以前也经常这么写，在需要注入的属性上面直接添加 <code>@Autowired</code> 注解，但是今天注意到 @Autowired 是有警告的：<code>Field Injection is not recommended</code>，来看一下 IDEA 给的建议：<code>Create Constructor: AuthProvider(UserService userService)</code>，原来是不建议使用属性注入的方式，而是建议使用 <code>构造器注入</code>，那么它们之间有什么区别呢？</p>
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/spring-boot/">spring-boot</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
   <article>
 
   
@@ -351,61 +405,6 @@
     <span class="post-tags">
       <i class="icon-tags"></i>
         <a href="/tags/hbase/">hbase</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2018/01/08/Flume-搭建教程以及入门级案例/"><span>Flume 搭建教程</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2018/01/08/Flume-搭建教程以及入门级案例/" rel="bookmark">
-        <time class="entry-date published" datetime="2018-01-08T11:53:32.000Z">
-          2018-01-08
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <p>基于上一节搭建的 Spark 环境，这一节我们继续搭建 Flume 相关的环境。在开始之前我们先介绍一个什么是 Flume？引用官网对于 Flume 的阐述：</p>
-<blockquote>
-<p>Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible architecture based on streaming data flows. It is robust and fault tolerant with tunable reliability mechanisms and many failover and recovery mechanisms. It uses a simple extensible data model that allows for online analytic application.</p>
-</blockquote>
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/flume/">flume</a>
     </span>
     
 

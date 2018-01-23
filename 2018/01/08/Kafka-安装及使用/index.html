@@ -57,9 +57,9 @@ data 是本机的 hostname，在所有配置 hostname 的地方都可以配成�
   <nav class="site-navigation">
     <ul>
       
-        <li><a href="/">主页</a></li>
+        <li><a href="/">Home</a></li>
       
-        <li><a href="/archives">归档</a></li>
+        <li><a href="/archives">Archives</a></li>
       
     </ul>
   </nav>
@@ -115,6 +115,8 @@ data 是本机的 hostname，在所有配置 hostname 的地方都可以配成�
 <p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1fmap77mw8cj30cg028dg6.jpg" alt=""></p>
 <p>出现以上信息表示 Zookeeper 启动成功，这时候可以使用 <code>jps</code> 命令查看进程，其中标红处的就是 Zookeeper 进程，默认监听 2181 端口</p>
 <p><img src="https://ws4.sinaimg.cn/large/006tNc79ly1fmap8lly34j305d04xdgb.jpg" alt=""></p>
+<p>还可以使用 <strong>zkServer.sh status</strong> 命令查看 zookeeper 的运行状态</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fnlvnrxae9j30cs02kdg8.jpg" alt=""></p>
 <h4 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h4><p>解压安装包</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br><span class="line">tar -zxvf kafka_2.11-0.10.2.1.tgz -C /root/</span><br></pre></td></tr></table></figure>
 <p>配置系统环境变量</p>

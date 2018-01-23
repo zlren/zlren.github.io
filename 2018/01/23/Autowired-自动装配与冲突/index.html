@@ -1,0 +1,168 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>@Autowired 自动装配与冲突 | zlren</title>
+
+  
+  <meta name="author" content="任子龙">
+  
+
+  
+  <meta name="description" content="今天在写代码的时候遇到这个情况
+
+以前也经常这么写，在需要注入的属性上面直接添加 @Autowired 注解，但是今天注意到 @Autowired 是有警告的：Field Injection is not recommended，来看一下 IDEA 给的建议：Create Constructor: AuthProvider(UserService userService)，原来是不建议使用属性注入的方式，而是建议使用 构造器注入，那么它们之间有什么区别呢？">
+  
+
+  
+  
+  <meta name="keywords" content="spring-boot">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="@Autowired 自动装配与冲突"/>
+
+  <meta property="og:site_name" content="zlren"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="zlren" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">zlren</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>@Autowired 自动装配与冲突</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/01/23/Autowired-自动装配与冲突/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-01-23T05:55:29.000Z">
+          2018-01-23
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <p>今天在写代码的时候遇到这个情况</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNc79ly1fnqcyyt7nrj30f104vglv.jpg" alt=""></p>
+<p>以前也经常这么写，在需要注入的属性上面直接添加 <code>@Autowired</code> 注解，但是今天注意到 @Autowired 是有警告的：<code>Field Injection is not recommended</code>，来看一下 IDEA 给的建议：<code>Create Constructor: AuthProvider(UserService userService)</code>，原来是不建议使用属性注入的方式，而是建议使用 <code>构造器注入</code>，那么它们之间有什么区别呢？</p>
+<a id="more"></a>
+<h4 id="Autowired"><a href="#Autowired" class="headerlink" title="@Autowired"></a>@Autowired</h4><p>我们先来看一下熟悉又陌生的 <code>@Autowired</code> 注解，可以说它是我们使用 Spring 框架的控制反转、依赖注入特性中用的最多的注解，@Autowired 是 Spring 官方提供的注解，在需要注入的地方添加这个注解后，Spring 就会自动为我们装配这个 Bean，这里我们首先要知道，@Autowired 是根据 <code>类型</code> 注入的。举个栗子</p>
+<p>声明一个接口如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Flyable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再添加两个实现类，并都将其使用 @Component 注解声明为 Bean</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span> <span class="keyword">implements</span> <span class="title">Flyable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"i can fly, my name is A"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">implements</span> <span class="title">Flyable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"i can fly, my name is B"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这时候我们要根据接口注入实现类，像这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> Flyable xxx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到这里其实大家应该可以想到是有歧义的，因为同时有两个符合条件的 Bean 分别是 A 和 B，结果是</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Field xxx <span class="keyword">in</span> lab.zlren.xunwu.base.test.Test required a single bean, but 2 were found:</span><br></pre></td></tr></table></figure>
+<p>这里也验证了 @Autowired 是根据类型注入的，否则不会报歧义而应该是找不到</p>
+<p>如何解决歧义呢？最简单的方法就是在我们需要的 Bean 上加入 <code>@Primary</code> 注解，这样对应的 Bean 就在同类型的 Bean 中有了更高的优先级，产生歧义的时候由于存在一个优先级更高的 Bean 那么它就会默认被注入</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Primary</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span> <span class="keyword">implements</span> <span class="title">Flyable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"i can fly, my name is A"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以想到如果在 B 上也加入 @Primary 则又会报歧义的错误。。</p>
+<p>有没有其他的方法呢？在 Java Config 之前，也就是 xml 配置的时代，有一个属性叫做 <code>beanId</code>，那么现在 beanId 是什么呢？实际上声明为 Bean 的 <code>类名首字母小写</code> 就是这个 Bean 对应的 beanId，beanId 是唯一的，因此通过它注入是不会有歧义的，这里可以有两种方式通过 beanId 去注入</p>
+<p><strong>1</strong> <code>属性名称</code>，这也是比较简单的方式，比如要注入 A，我们可以这样做（首先去掉 A 上面的 @Primary 注解恢复之前的歧义状态）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> Flyable a;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于 A 的 beanId 是首字母小写也就是 『a』，所以这里的属性（变量）名直接就是 beanId 就不会有歧义。但是这样一来 A 这个 Bean 如果更改了类名就又会造成注入失败，那么能不能手动指定 beanId 呢？</p>
+<p><strong>2</strong> <code>@Qualifier</code> 手动指定，我们也可以通过它手动指定 beanId 来消除歧义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier</span>(<span class="string">"a"</span>)</span><br><span class="line">    <span class="keyword">private</span> Flyable xxx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面提到 Bean 的默认 beanId 是首字母小写，其实这里也可以手动指定，同样也是通过 @Qualifier 注解，这样再配合 @Autowired 处的 @Qualifier 就可以实现无歧义注入</p>
+<h4 id="三种注入方式"><a href="#三种注入方式" class="headerlink" title="三种注入方式"></a>三种注入方式</h4><p>@Autowired 的 3 种使用方法：</p>
+<ul>
+<li>属性（Field）注入</li>
+<li>setter 方法（或者其他方法）注入</li>
+<li>构造器注入</li>
+</ul>
+<p>属性注入是最简单、最简洁的注入方式，一般情况下很多同学都这么做，但它无法注入 final 对象，与此同时它和所依赖的容器是强耦合的，无法在容器外使用，无法绕过反射进行实例化，更像是集成测试。由于没有写在构造器参数列表中，实际的依赖被隐藏在外面，使用 Spring 外的容器可能会引起空指针异常</p>
+<p>使用 setter 方法注入的属性无法被设置为 final，上面提到的 <code>或其他方法</code> 表明不只是通过 setter 方法，实际上 setter 方法注入的背后参数列表，因此完全可以将 @Autowired 写在一个普通方法上，它会根据参数列表进行 Bean 装配</p>
+<p>第三种就是构造器注入，这是最推荐的方式，但就是如果需要注入的依赖比较多的话。。参数列表可能比较长。。但是这也从某种程度上也提醒我们这个类需要依赖这么多东西，是不是干的活太多了？有没有违背单一职责的原则？</p>
+<h4 id="推荐"><a href="#推荐" class="headerlink" title="推荐"></a>推荐</h4><p>Spring 3 建议 setter 注入，Spring 4 建议构造器注入</p>
+<p>结论：如果是 final 类型的就使用构造器注入，否则可以使用 setter 方法注入</p>
+<p>至于属性注入，还是不要使用的好</p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/spring-boot/">spring-boot</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 任子龙
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>
